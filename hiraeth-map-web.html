@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Hiraeth Map</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;1,6..72,300;1,6..72,400&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Layout: one narrow reading column, stepped like a walk home; the map is the one bold moment. */
+:root{
+  --bg:#E9ECEE;          /* limestone at dusk */
+  --surface:#F5F6F7;
+  --ink:#1E2A33;
+  --ink-soft:#56636D;
+  --rule:#C5CCD2;
+  --sea:#2F5E77;         /* accent: deep harbour blue */
+  --sea-wash:rgba(47,94,119,.10);
+  --gold:#A9802F;        /* imagined homes: late-light stone */
+  --gold-wash:rgba(169,128,47,.12);
+  --display:"Newsreader",Georgia,"Times New Roman",serif;
+  --body:"Work Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#141B21;--surface:#1C252D;--ink:#E3E7EA;--ink-soft:#9AA6AF;--rule:#33414C;
+  --sea:#7FB2CC;--sea-wash:rgba(127,178,204,.14);--gold:#D5B06A;--gold-wash:rgba(213,176,106,.14);color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141B21;--surface:#1C252D;--ink:#E3E7EA;--ink-soft:#9AA6AF;--rule:#33414C;
+  --sea:#7FB2CC;--sea-wash:rgba(127,178,204,.14);--gold:#D5B06A;--gold-wash:rgba(213,176,106,.14);color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:40rem;margin:0 auto;padding-block:2.5rem 5rem}
+h1,h2{font-family:var(--display);font-weight:300;letter-spacing:-.01em;text-wrap:balance;margin:0}
+h1{font-size:clamp(2.4rem,8vw,3.4rem);line-height:1.02}
+h2{font-size:1.65rem;line-height:1.2;margin-bottom:.4rem}
+.say{font-family:var(--display);font-style:italic;color:var(--ink-soft);font-size:1.05rem}
+p{margin:0 0 1rem;max-width:36rem}
+.eyebrow{font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--sea);font-weight:600}
+.pron{font-size:.85rem;color:var(--ink-soft)}
+.steps{display:flex;gap:6px;margin:1.6rem 0 2rem;flex-wrap:wrap}
+.steps button{flex:1 1 0;min-width:2.4rem;height:6px;border:0;border-radius:3px;background:var(--rule);cursor:pointer;padding:0}
+.steps button.on{background:var(--sea)}
+.steps button:focus-visible{outline:2px solid var(--sea);outline-offset:3px}
+.panel{display:flex;flex-direction:column;gap:1rem}
+.homes{display:flex;flex-direction:column;gap:.6rem;counter-reset:h}
+.home-in{display:flex;gap:.7rem;align-items:center}
+.home-in span{font-family:var(--display);color:var(--ink-soft);width:1.2rem;text-align:right;font-variant-numeric:tabular-nums}
+input[type=text],textarea{width:100%;font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--rule);border-radius:6px;padding:.65rem .8rem}
+textarea{min-height:8.5rem;resize:vertical;line-height:1.55}
+input:focus,textarea:focus{outline:2px solid var(--sea);outline-offset:1px;border-color:transparent}
+.note{font-size:.88rem;color:var(--ink-soft)}
+.mark{background:var(--surface);border:1px solid var(--rule);border-radius:8px;padding:.9rem 1rem;display:flex;flex-direction:column;gap:.6rem}
+.mark .t{font-family:var(--display);font-size:1.12rem}
+.row{display:flex;gap:.4rem;flex-wrap:wrap;align-items:center}
+.row .lbl{font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft);width:5.6rem}
+.chip{font:inherit;font-size:.86rem;border:1px solid var(--rule);background:transparent;color:var(--ink);border-radius:999px;padding:.25rem .75rem;cursor:pointer}
+.chip[aria-pressed=true]{background:var(--sea);border-color:var(--sea);color:var(--bg)}
+.chip.gold[aria-pressed=true]{background:var(--gold);border-color:var(--gold)}
+.chip:focus-visible,.btn:focus-visible{outline:2px solid var(--sea);outline-offset:2px}
+/* the map */
+.map{display:grid;grid-template-columns:auto 1fr 1fr;gap:6px;margin-top:.4rem}
+.map .ax{font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);display:flex;align-items:center;justify-content:center;padding:.3rem}
+.map .ax.v{writing-mode:vertical-rl;transform:rotate(180deg)}
+.cell{min-height:9rem;border-radius:8px;padding:.7rem;display:flex;flex-direction:column;gap:.4rem;min-width:0}
+.cell.real{background:var(--sea-wash)}
+.cell.imag{background:var(--gold-wash)}
+.cell h3{margin:0;font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;font-weight:600}
+.cell.real h3{color:var(--sea)}.cell.imag h3{color:var(--gold)}
+.pin{font-family:var(--display);font-size:.98rem;line-height:1.3;overflow-wrap:anywhere}
+.pin small{display:block;font-family:var(--body);font-size:.7rem;color:var(--ink-soft);letter-spacing:.06em;text-transform:uppercase}
+.empty{font-size:.82rem;color:var(--ink-soft);font-style:italic}
+.unsorted{font-size:.86rem;color:var(--ink-soft)}
+.nav{display:flex;gap:.6rem;flex-wrap:wrap;margin-top:1rem}
+.btn{font:inherit;font-weight:500;font-size:.92rem;border-radius:6px;padding:.6rem 1.1rem;cursor:pointer;border:1px solid var(--sea);background:var(--sea);color:var(--bg)}
+.btn.quiet{background:transparent;color:var(--sea)}
+.rev{display:flex;flex-direction:column;gap:1.2rem}
+.rev h3{font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--sea);margin:0 0 .3rem}
+.rev .body{white-space:pre-wrap;font-family:var(--display);font-size:1.05rem}
+.confirm{background:var(--surface);border:1px solid var(--rule);border-radius:8px;padding:1rem}
+.saved{font-size:.8rem;color:var(--ink-soft);min-height:1.2rem}
+@media (max-width:440px){.cell{min-height:7rem}.row .lbl{width:100%}}
+@media (prefers-reduced-motion:no-preference){.panel{animation:in .35s ease both}@keyframes in{from{opacity:.4;transform:translateY(4px)}to{opacity:1;transform:none}}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="eyebrow">A reflection exercise</div>
+  <h1>The Hiraeth Map</h1>
+  <p class="pron"><em>hiraeth</em> · Welsh · roughly HEER-eyeth</p>
+  <nav class="steps" id="steps" aria-label="Steps"></nav>
+  <main id="app"></main>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+const N = 7;
+const blank = () => ({ text:"", sphere:"", kind:"", dir:"" });
+let S = { step:0, homes:Array.from({length:N}, blank),
+  miss:"", unseen:"", carried:"", others:"" };
+// Example so the map shows its shape on first open
+const EXAMPLE = [
+  {text:"My grandmother's kitchen on Sunday afternoons", sphere:"Personal", kind:"Real", dir:"Back"},
+  {text:"The first team I led, before the reorganization", sphere:"Work", kind:"Real", dir:"Back"},
+  {text:"The career I expected to finish where I started", sphere:"Work", kind:"Imagined", dir:"Forward"},
+  {text:"The town I pictured my children growing up in", sphere:"Personal", kind:"Imagined", dir:"Forward"}
+];
+const KEY = "hiraeth-map";
+try{ const raw = localStorage.getItem(KEY); if(raw) S = Object.assign(S, JSON.parse(raw)); }catch(e){}
+let showingExample = !S.homes.some(h=>h.text.trim());
+
+const STEPS = ["Begin","Name","Sort","Map","Reflect","Keep"];
+const app = document.getElementById("app"), nav = document.getElementById("steps");
+let t;
+function save(){ clearTimeout(t); t=setTimeout(()=>{ try{ localStorage.setItem(KEY, JSON.stringify(S)); flash("Saved in this browser"); }catch(e){ flash("Saving isn't available here. Copy your text before you leave."); } }, 400); }
+function flash(m){ const s=document.getElementById("saved"); if(s) s.textContent=m; }
+const esc = s => s.replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const filled = () => S.homes.map((h,i)=>({h,i})).filter(x=>x.h.text.trim());
+function go(n){ S.step=n; save(); render(); window.scrollTo({top:0}); }
+
+function navHTML(){
+  nav.innerHTML = STEPS.map((s,i)=>`<button type="button" class="${i<=S.step?'on':''}" data-go="${i}" aria-label="${s}" ${i===S.step?'aria-current="step"':''}></button>`).join("");
+}
+function buttons(back,next,label){
+  return `<div class="nav">${back!==null?`<button class="btn quiet" data-go="${back}">Back</button>`:""}${next!==null?`<button class="btn" data-go="${next}">${label||"Continue"}</button>`:""}</div><div class="saved" id="saved"></div>`;
+}
+function chip(i,key,val,gold){ const on=S.homes[i][key]===val; return `<button type="button" class="chip${gold?' gold':''}" aria-pressed="${on}" data-i="${i}" data-k="${key}" data-v="${val}">${val==="Back"?"Looking back":val==="Forward"?"Looking forward":val}</button>`; }
+
+function mapHTML(list){
+  const cell=(sphere,kind)=>{
+    const items=list.filter(h=>h.sphere===sphere&&h.kind===kind);
+    return `<div class="cell ${kind==='Real'?'real':'imag'}"><h3>${sphere} · ${kind}</h3>${items.length?items.map(h=>`<div class="pin">${esc(h.text)}${h.dir?`<small>${h.dir==="Back"?"Looking back":"Looking forward"}</small>`:""}</div>`).join(""):`<div class="empty">Nothing here yet</div>`}</div>`;
+  };
+  return `<div class="map">
+    <div></div><div class="ax">Real homes</div><div class="ax">Imagined homes</div>
+    <div class="ax v">Personal</div>${cell("Personal","Real")}${cell("Personal","Imagined")}
+    <div class="ax v">Work</div>${cell("Work","Real")}${cell("Work","Imagined")}
+  </div>`;
+}
+
+function render(){
+  navHTML();
+  let h="";
+  if(S.step===0){
+    h=`<section class="panel">
+      <p class="say">A longing for a home you cannot return to. Sometimes it is a home that never quite existed, or hasn’t yet.</p>
+      <p>Hiraeth is a type of grief for a kind of home. That might be a place, a team, a family as it was, or a version of yourself. It might also be a future you hoped for that will not come.</p>
+      <p>In this exercise, you name the homes you carry, honoring that loss or longing and what you might learn from it. You can sort them and see them together. This also helps us see others and witness the lost homes they might be carrying.</p>
+      <p class="note">Everything you write stays in this browser on this device. Nothing is sent to anyone. You can copy your answers or download a PDF for further reflection.</p>
+      ${buttons(null,1,"Begin")}</section>`;
+  }
+  if(S.step===1){
+    h=`<section class="panel"><h2>Name the homes you can't return to</h2>
+      <p>Write up to seven. Let whatever comes up just be: a job, a team, a role, a relationship, a season of life, a future you were counting on. Short phrases are enough.</p>
+      <div class="homes">${S.homes.map((x,i)=>`<label class="home-in"><span>${i+1}</span><input type="text" id="home-${i}" data-home="${i}" value="${esc(x.text)}" placeholder="${i===0?'e.g. the office and culture where I had my first job':''}" aria-label="Home ${i+1}"></label>`).join("")}</div>
+      <p class="note">Blanks are fine. Sometimes the last one you write is the one you weren't planning to.</p>
+      ${buttons(0,2)}</section>`;
+  }
+  if(S.step===2){
+    const f=filled();
+    h=`<section class="panel"><h2>Sort them</h2>
+      <p>For each home, mark where it lived, whether it was real or imagined, and which way the longing is looking.</p>
+      <p class="note">Real means a place or time that existed. Imagined means a future you hoped for, or a past that memory has made more of than it was.</p>
+      ${f.length?f.map(({h:x,i})=>`<div class="mark"><div class="t">${esc(x.text)}</div>
+        <div class="row"><span class="lbl">Where</span>${chip(i,"sphere","Personal")}${chip(i,"sphere","Work")}</div>
+        <div class="row"><span class="lbl">Kind</span>${chip(i,"kind","Real")}${chip(i,"kind","Imagined",true)}</div>
+        <div class="row"><span class="lbl">Facing</span>${chip(i,"dir","Back")}${chip(i,"dir","Forward",true)}</div></div>`).join(""):`<p class="empty">Name at least one home first.</p>`}
+      ${buttons(1,3,"See the map")}</section>`;
+  }
+  if(S.step===3){
+    const f=filled().map(x=>x.h);
+    const sorted=f.filter(x=>x.sphere&&x.kind);
+    const loose=f.length-sorted.length;
+    const ex = showingExample && !f.length;
+    h=`<section class="panel"><h2>Your map</h2>
+      ${ex?`<p class="note">This is an example map. Yours will appear here once you name and sort your own homes.</p>`:`<p>Look at the whole before you think about any one part. What do you see? Where is it concentrated? Where is it empty? Which way do most of your longings face?</p>`}
+      ${mapHTML(ex?EXAMPLE:sorted)}
+      ${loose>0?`<p class="unsorted">${loose} ${loose===1?"home isn't":"homes aren't"} sorted yet, so ${loose===1?"it isn't":"they aren't"} on the map.</p>`:""}
+      ${buttons(2,4)}</section>`;
+  }
+  if(S.step===4){
+    const q=[
+      ["miss","What do you actually miss?","For each home, is it the place, the people, or who you were there?"],
+      ["unseen","Which longing has no permission?","Which of these homes have you never been able to grieve out loud, because others would not see or understand it as a loss?"],
+      ["carried","What did you carry with you?","What habits, traditions, or ways of being still keep part of these homes alive in you? Which ones help, and which hold you back?"],
+      ["others","Whose homes can't you see?","Who at work or at home might be carrying a home they cannot return to? What might they be missing that no one has asked about?"]
+    ];
+    h=`<section class="panel"><h2>Reflect</h2>
+      ${q.map(([k,t,p])=>`<div><label for="f-${k}"><strong>${t}</strong></label><p class="note" style="margin:.2rem 0 .5rem">${p}</p><textarea id="f-${k}" data-field="${k}">${esc(S[k])}</textarea></div>`).join("")}
+      ${buttons(3,5)}</section>`;
+  }
+  if(S.step===5){
+    const f=filled().map(x=>x.h);
+    const blocks=[["What I miss","miss"],["The longing with no permission","unseen"],["What I carried with me","carried"],["Other people's homes","others"]];
+    h=`<section class="panel rev"><h2>Keep what you found</h2>
+      <div><h3>The homes I carry</h3>${f.length?f.map((x,i)=>`<div class="pin">${i+1}. ${esc(x.text)}${[x.sphere,x.kind,x.dir&&(x.dir==="Back"?"Looking back":"Looking forward")].filter(Boolean).length?`<small>${[x.sphere,x.kind,x.dir&&(x.dir==="Back"?"Looking back":"Looking forward")].filter(Boolean).join(" · ")}</small>`:""}</div>`).join(""):`<p class="empty">Nothing named yet.</p>`}</div>
+      ${blocks.map(([t,k])=>`<div><h3>${t}</h3><div class="body">${S[k].trim()?esc(S[k]):`<span class="empty">Left blank.</span>`}</div></div>`).join("")}
+      <div class="nav"><button class="btn quiet" data-go="4">Back</button><button class="btn" id="pdf">Save as PDF</button><button class="btn quiet" id="copy">Copy as text</button><button class="btn quiet" id="clear">Start over</button></div>
+      <div id="confirm"></div>
+      <textarea id="fallback" hidden readonly aria-label="Your map as text"></textarea>
+      <div class="saved" id="saved"></div></section>`;
+  }
+  app.innerHTML=h; wire();
+}
+
+function asText(){
+  let o="THE HIRAETH MAP\n\nThe homes I carry\n";
+  filled().forEach(({h},n)=>{ const tags=[h.sphere,h.kind,h.dir&&(h.dir==="Back"?"looking back":"looking forward")].filter(Boolean).join(", "); o+=`${n+1}. ${h.text}${tags?` (${tags})`:""}\n`; });
+  [["What I miss","miss"],["The longing with no permission","unseen"],["What I carried with me","carried"],["Other people's homes","others"]].forEach(([t,k])=>{ if(S[k].trim()) o+=`\n${t}\n${S[k]}\n`; });
+  return o;
+}
+
+function savePDF(){
+  try{
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({unit:"pt", format:"a4"});
+    const W = doc.internal.pageSize.getWidth(), H = doc.internal.pageSize.getHeight(), M = 56, TW = W - M*2;
+    let y = M;
+    const need = h => { if(y + h > H - M){ doc.addPage(); y = M; } };
+    const para = (txt, size, style, color, gap) => {
+      doc.setFont(style[0], style[1]); doc.setFontSize(size); doc.setTextColor(...color);
+      doc.splitTextToSize(txt, TW).forEach(line => { need(size*1.45); doc.text(line, M, y); y += size*1.45; });
+      y += gap||0;
+    };
+    para("A REFLECTION EXERCISE", 9, ["helvetica","bold"], [47,94,119], 20);
+    para("The Hiraeth Map", 28, ["times","normal"], [30,42,51], 4);
+    para(new Date().toLocaleDateString(undefined,{year:"numeric",month:"long",day:"numeric"}), 10, ["helvetica","normal"], [86,99,109], 18);
+    const head = t => { y += 6; para(t.toUpperCase(), 9, ["helvetica","bold"], [47,94,119], 4); };
+    head("The homes I carry");
+    const f = filled();
+    if(!f.length) para("Nothing named yet.", 11, ["times","italic"], [86,99,109], 0);
+    f.forEach(({h},n)=>{
+      const tags=[h.sphere,h.kind,h.dir&&(h.dir==="Back"?"Looking back":"Looking forward")].filter(Boolean).join(" · ");
+      para(`${n+1}. ${h.text}`, 12, ["times","normal"], [30,42,51], 0);
+      if(tags) para(tags, 9, ["helvetica","normal"], [86,99,109], 4);
+    });
+    [["What I miss","miss"],["The longing with no permission","unseen"],["What I carried with me","carried"],["Other people's homes","others"]].forEach(([t,k])=>{
+      head(t);
+      para(S[k].trim() || "Left blank.", 12, S[k].trim()?["times","normal"]:["times","italic"], S[k].trim()?[30,42,51]:[86,99,109], 6);
+    });
+    doc.save("hiraeth-map.pdf");
+    flash("Your PDF is downloading.");
+  }catch(e){ flash("The PDF couldn't be created here. Use Copy as text instead."); }
+}
+
+function wire(){
+  document.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>go(+b.dataset.go));
+  app.querySelectorAll("[data-home]").forEach(inp=>inp.oninput=()=>{ S.homes[+inp.dataset.home].text=inp.value; showingExample=false; save(); });
+  app.querySelectorAll("[data-field]").forEach(ta=>ta.oninput=()=>{ S[ta.dataset.field]=ta.value; save(); });
+  app.querySelectorAll(".chip").forEach(c=>c.onclick=()=>{ const x=S.homes[+c.dataset.i]; x[c.dataset.k]= x[c.dataset.k]===c.dataset.v ? "" : c.dataset.v; save(); render(); });
+  const cp=document.getElementById("copy");
+  if(cp) cp.onclick=()=>{ const txt=asText();
+    const fb=()=>{ const f=document.getElementById("fallback"); f.hidden=false; f.value=txt; f.focus(); f.select(); flash("Select all and copy the text below."); };
+    try{ navigator.clipboard.writeText(txt).then(()=>flash("Copied. Paste it into a journal or email to yourself."), fb); }catch(e){ fb(); } };
+  const pd=document.getElementById("pdf");
+  if(pd) pd.onclick=savePDF;
+  const cl=document.getElementById("clear");
+  if(cl) cl.onclick=()=>{ document.getElementById("confirm").innerHTML=`<div class="confirm"><p>This erases everything you wrote in this browser. Copy it first if you want to keep it.</p><div class="nav"><button class="btn quiet" id="no">Keep my map</button><button class="btn" id="yes">Erase and start over</button></div></div>`;
+    document.getElementById("no").onclick=()=>{ document.getElementById("confirm").innerHTML=""; };
+    document.getElementById("yes").onclick=()=>{ S={step:0,homes:Array.from({length:N},blank),miss:"",unseen:"",carried:"",others:""}; showingExample=true; try{localStorage.removeItem(KEY);}catch(e){} render(); }; };
+}
+render();
+</script>
+
+</body>
+</html>
